@@ -44,6 +44,17 @@ quarantine flag, or OBS will refuse to load it:</p>
 <h3>Linux</h3>
 <pre><code>tar -xzf lenslink-linux-x86_64.tar.gz -C ~/.config/obs-studio/plugins/</code></pre>
 <p>
+  <strong>Flatpak OBS</strong> reads plugins from its own folder instead, and
+  its sandbox hides the USB daemon's socket until you share it:
+</p>
+<pre><code>mkdir -p ~/.var/app/com.obsproject.Studio/config/obs-studio/plugins
+tar -xzf lenslink-linux-x86_64.tar.gz -C ~/.var/app/com.obsproject.Studio/config/obs-studio/plugins/
+flatpak override --user --filesystem=/run/usbmuxd com.obsproject.Studio</code></pre>
+<p>
+  If Flatpak OBS logs <code>libobs.so.0: cannot open shared object file</code>,
+  the tarball is from a release before Flatpak support. Update.
+</p>
+<p>
   If the plugin doesn't appear and the log says
   <code>libavcodec.so.60: cannot open shared object file</code>, you're on a
   release before 1.8, whose tarball linked the build machine's FFmpeg. Update,

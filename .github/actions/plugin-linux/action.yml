@@ -21,7 +21,7 @@ runs:
       shell: bash
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake pkg-config libobs-dev qt6-base-dev
+        sudo apt-get install -y cmake pkg-config libobs-dev qt6-base-dev patchelf
 
     # The release tarball has to run on every distro, but linking a
     # shared FFmpeg pins an FFmpeg-major soname (libavcodec.so.60)
@@ -60,8 +60,18 @@ runs:
         grep -q "frontend UI enabled" configure.log
         cmake --build build
 
+    # Debian/Ubuntu ship libobs as libobs.so.0, upstream OBS (and so the
+    # Flatpak) as libobs.so.30: a NEEDED entry for either soname stops the
+    # module loading under the other (issue #157). OBS has libobs loaded
+    # before it opens any plugin, so the symbols resolve without one.
+    - name: Drop the libobs soname dependency
+      shell: bash
+      run: patchelf --remove-needed libobs.so.0 obs-plugin/build/lenslink.so
+
     # Fail the build if the binary regressed to soname-coupled shared
-    # FFmpeg (the exact breakage of issue #65), or lost its VAAPI link.
+    # FFmpeg (the exact breakage of issue #65), lost its VAAPI or libdrm
+    # link (#208: no zero-copy GPU pipeline), or depends on a libobs
+    # soname again (#157).
     # Plain `if grep`, not `! grep`: a `!` line that isn't the last
     # command is non-fatal under the runner's bash -e, so the old
     # negated form could never fail the step.
@@ -74,6 +84,11 @@ runs:
           exit 1
         fi
         grep -qE "NEEDED.*libva\.so" needed.log
+        grep -qE "NEEDED.*libdrm\.so" needed.log
+        if grep -E "NEEDED.*libobs" needed.log; then
+          echo "::error::lenslink.so depends on a libobs soname (issue #157)"
+          exit 1
+        fi
 
     - name: Package (extract into ~/.config/obs-studio/plugins)
       shell: bash
