@@ -75,14 +75,17 @@ runs:
           throw "obs.dll import missing - dependents dump looks wrong"
         }
 
-    - name: Package (extract into C:\Program Files\obs-studio)
+    # OBS 33+ loads plugins\lenslink\lenslink.dll; OBS 32 only looks in
+    # plugins\lenslink\bin\64bit\. Both share data\.
+    - name: Package (extract into C:\ProgramData\obs-studio\plugins)
       shell: pwsh
       run: |
-        New-Item -ItemType Directory -Force -Path stage\obs-plugins\64bit | Out-Null
-        New-Item -ItemType Directory -Force -Path stage\data\obs-plugins\lenslink | Out-Null
-        Copy-Item plugin-build\Release\lenslink.dll stage\obs-plugins\64bit\
-        Copy-Item -Recurse obs-plugin\data\* stage\data\obs-plugins\lenslink\
-        Compress-Archive -Path stage\* -DestinationPath lenslink-windows-x64.zip
+        New-Item -ItemType Directory -Force -Path stage\lenslink\bin\64bit | Out-Null
+        New-Item -ItemType Directory -Force -Path stage\lenslink\data | Out-Null
+        Copy-Item plugin-build\Release\lenslink.dll stage\lenslink\
+        Copy-Item plugin-build\Release\lenslink.dll stage\lenslink\bin\64bit\
+        Copy-Item -Recurse obs-plugin\data\* stage\lenslink\data\
+        Compress-Archive -Path stage\lenslink -DestinationPath lenslink-windows-x64.zip
 
     # One-click alternative to the zip: detects the OBS folder from the
     # registry and registers an uninstaller. Inno Setup is preinstalled

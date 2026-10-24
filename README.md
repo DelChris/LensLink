@@ -32,10 +32,12 @@ phone.
 **1. The OBS plugin.** Download the build for your system from the
 [Releases](../../releases) page:
 
-- **Windows** — run `LensLink-installer-windows-x64.exe`. It finds your
-  OBS Studio folder automatically; restart OBS afterwards. (Prefer manual?
-  Unzip `lenslink-windows-x64.zip` into `C:\Program Files\obs-studio\`,
-  merging the `obs-plugins` and `data` folders.)
+- **Windows** — run `LensLink-installer-windows-x64.exe`, then restart
+  OBS. It installs into `C:\ProgramData\obs-studio\plugins\lenslink\` and
+  removes copies older releases put in the OBS folder. (Prefer manual?
+  Unzip `lenslink-windows-x64.zip` into `C:\ProgramData\obs-studio\plugins\`,
+  and delete any `obs-plugins\64bit\lenslink.dll` and
+  `data\obs-plugins\lenslink\` from your OBS folder.)
 - **macOS** — open `LensLink-installer-macos-universal.pkg` (right-click →
   Open the first time; the package isn't notarized). Restart OBS.
 - **Linux** — extract `lenslink-linux-x86_64.tar.gz` into

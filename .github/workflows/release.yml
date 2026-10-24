@@ -222,18 +222,18 @@ jobs:
 
             | Platform | Download | Then |
             |----------|----------|------|
-            | **Windows** | [Installer](${{ env.DL }}/LensLink-installer-windows-x64.exe) | Run it (finds your OBS folder automatically), restart OBS. |
+            | **Windows** | [Installer](${{ env.DL }}/LensLink-installer-windows-x64.exe) | Run it, restart OBS. |
             | **macOS** | [Installer](${{ env.DL }}/LensLink-installer-macos-universal.pkg) | Right-click → **Open** (not notarized), restart OBS. |
             | **Linux** | [Plugin tarball](${{ env.DL }}/lenslink-linux-x86_64.tar.gz) | Extract into `~/.config/obs-studio/plugins/`. |
             | **Stream Deck** | [Plugin](${{ env.DL }}/cam.lenslink.streamdeck.streamDeckPlugin) | Double-click it; Stream Deck installs it. Needs the OBS plugin's browser control panel (on by default). |
             | **iPhone / iPad** | [App Store](https://apps.apple.com/app/lenslink-camera/id6790673163) | Free, updates automatically. Want builds before App Review? [TestFlight beta](https://testflight.apple.com/join/N7Rth6m3). |
 
-            Plugin builds match OBS Studio 32.x; the macOS build is universal (macOS 13+).
+            Plugin builds load in OBS Studio 32 and newer; the macOS build is universal (macOS 13+).
 
             <details>
             <summary><b>Manual installs, sideloading, USB</b></summary>
 
-            - **Windows zip:** extract [`lenslink-windows-x64.zip`](${{ env.DL }}/lenslink-windows-x64.zip) into `C:\Program Files\obs-studio\`, merging folders.
+            - **Windows zip:** extract [`lenslink-windows-x64.zip`](${{ env.DL }}/lenslink-windows-x64.zip) into `C:\ProgramData\obs-studio\plugins\`. Delete any older `obs-plugins\64bit\lenslink.dll` and `data\obs-plugins\lenslink\` from the OBS folder.
             - **macOS zip:** extract [`lenslink-macos-universal.zip`](${{ env.DL }}/lenslink-macos-universal.zip) into `~/Library/Application Support/obs-studio/plugins/`, then clear quarantine: `xattr -dr com.apple.quarantine ~/Library/Application\ Support/obs-studio/plugins/lenslink.plugin`
             - **iOS sideload:** install [`LensLink-unsigned.ipa`](${{ env.DL }}/LensLink-unsigned.ipa) with [Sideloadly](https://sideloadly.io) — free Apple IDs re-sign every 7 days.
             - **USB on Windows** needs iTunes (it provides Apple's device driver).

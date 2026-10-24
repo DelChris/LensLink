@@ -20,13 +20,15 @@ description: Install the LensLink plugin into OBS Studio on Windows, macOS or Li
 
 <h3>Windows</h3>
 <p>
-  Run <code>LensLink-installer-windows-x64.exe</code>. It finds your OBS folder
-  and removes any pre-1.0 copy of the plugin.
+  Run <code>LensLink-installer-windows-x64.exe</code>. It installs into
+  <code>C:\ProgramData\obs-studio\plugins\lenslink\</code>, the plugin folder
+  OBS 33 expects, and removes copies older releases put in your OBS folder.
 </p>
 <p>
   Manual alternative: unzip <code>lenslink-windows-x64.zip</code> into
-  <code>C:\Program Files\obs-studio\</code>, merging the <code>obs-plugins</code>
-  and <code>data</code> folders.
+  <code>C:\ProgramData\obs-studio\plugins\</code>. If an older release is
+  installed, delete <code>obs-plugins\64bit\lenslink.dll</code> and
+  <code>data\obs-plugins\lenslink\</code> from your OBS folder too.
 </p>
 
 <h3>macOS</h3>
@@ -157,7 +159,7 @@ cd ios-app && xcodegen generate && open LensLink.xcodeproj</code></pre>
 
 <h2>Uninstalling</h2>
 <ul>
-  <li><strong>Windows:</strong> the installer's uninstall entry, or delete <code>obs-plugins\64bit\lenslink.dll</code> and <code>data\obs-plugins\lenslink\</code>.</li>
+  <li><strong>Windows:</strong> the installer's uninstall entry, or delete <code>C:\ProgramData\obs-studio\plugins\lenslink\</code>.</li>
   <li><strong>macOS:</strong> delete <code>~/Library/Application Support/obs-studio/plugins/lenslink.plugin</code>.</li>
   <li><strong>Linux:</strong> delete the extracted files from <code>~/.config/obs-studio/plugins/</code>.</li>
   <li><strong>App:</strong> delete it as usual. Nothing is left on the computer.</li>
