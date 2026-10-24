@@ -4,8 +4,10 @@
 ;   iscc /DAppVersion=1.2.0 installer\windows\lenslink.iss
 ; with the plugin already packaged into stage\ (same layout the zip uses).
 ;
-; Installs into the OBS Studio folder (auto-detected from the registry,
-; user-overridable) and registers a normal Windows uninstaller.
+; Installs into OBS's per-machine plugin folder,
+; C:\ProgramData\obs-studio\plugins\lenslink, and registers a normal Windows
+; uninstaller. The DLL sits both at the folder root (OBS 33+) and in
+; bin\64bit (OBS 32), sharing one data\ folder.
 
 #ifndef AppVersion
   #define AppVersion "0.0.0"
@@ -18,18 +20,18 @@ AppVersion={#AppVersion}
 AppPublisher=Exalted Pixels
 AppPublisherURL=https://github.com/MyNamesEMurray/LensLink
 AppSupportURL=https://github.com/MyNamesEMurray/LensLink/issues
-; Everything is laid out relative to the OBS install folder.
-DefaultDirName={code:GetObsDir}
-DirExistsWarning=no
-AppendDefaultDirName=no
+DefaultDirName={commonappdata}\obs-studio\plugins\lenslink
+; Releases before OBS 33 installed into the OBS folder; don't reuse it.
+UsePreviousAppDir=no
+DisableDirPage=yes
 DisableProgramGroupPage=yes
-; OBS lives in Program Files, so writing there needs elevation.
+; ProgramData, and removing old copies from Program Files, need elevation.
 PrivilegesRequired=admin
 ; "x64" (not the newer "x64compatible") so any Inno Setup 6.x compiles it.
 ArchitecturesAllowed=x64
 ArchitecturesInstallIn64BitMode=x64
-; Keep the uninstaller out of OBS's root folder.
-UninstallFilesDir={app}\data\obs-plugins\lenslink
+; Keep the uninstaller beside the plugin's data, not its DLL.
+UninstallFilesDir={app}\data
 OutputBaseFilename=LensLink-installer-windows-x64
 SourceDir=..\..
 OutputDir=.
@@ -40,16 +42,16 @@ SolidCompression=yes
 ; Pre-1.0 builds shipped as "ios-camera-source". If a copy is still present
 ; it loads first, registers the source id, and OBS rejects the current
 ; plugin as a duplicate — the user silently keeps running the old code.
-Type: files; Name: "{app}\obs-plugins\64bit\ios-camera-source.dll"
-Type: filesandordirs; Name: "{app}\data\obs-plugins\ios-camera-source"
+Type: files; Name: "{code:GetObsDir}\obs-plugins\64bit\ios-camera-source.dll"
+Type: filesandordirs; Name: "{code:GetObsDir}\data\obs-plugins\ios-camera-source"
+; Releases before OBS 33 installed into the OBS folder (a location OBS 34
+; no longer loads). Left in place, that copy would also load and register
+; the same source ids as this one.
+Type: files; Name: "{code:GetObsDir}\obs-plugins\64bit\lenslink.dll"
+Type: filesandordirs; Name: "{code:GetObsDir}\data\obs-plugins\lenslink"
 
 [Files]
-Source: "stage\obs-plugins\64bit\lenslink.dll"; DestDir: "{app}\obs-plugins\64bit"; Flags: ignoreversion
-Source: "stage\data\obs-plugins\lenslink\*"; DestDir: "{app}\data\obs-plugins\lenslink"; Flags: ignoreversion recursesubdirs
-
-[Messages]
-SelectDirDesc=Where is OBS Studio installed?
-SelectDirLabel3=Setup will install the LensLink plugin into your OBS Studio folder.
+Source: "stage\lenslink\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
 
 [Code]
 function GetObsDir(Param: string): string;
@@ -59,14 +61,3 @@ begin
     Result := ExpandConstant('{autopf}\obs-studio');
 end;
 
-function NextButtonClick(CurPageID: Integer): Boolean;
-begin
-  Result := True;
-  { A wrong folder installs "successfully" but OBS never sees the plugin;
-    warn (but allow — portable installs may look different). }
-  if (CurPageID = wpSelectDir) and
-     not FileExists(ExpandConstant('{app}\bin\64bit\obs64.exe')) then
-    Result := MsgBox('This folder does not look like an OBS Studio ' +
-                     'installation (bin\64bit\obs64.exe not found).' + #13#10 +
-                     'Install here anyway?', mbConfirmation, MB_YESNO) = IDYES;
-end;
