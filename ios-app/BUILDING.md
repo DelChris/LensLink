@@ -39,6 +39,29 @@ In Xcode:
 On first launch iOS will ask for **camera** and **local network** permission —
 both are required.
 
+## Sideloading a test build (no Mac, no signing in CI)
+
+`.github/workflows/sideload-ipa.yml` builds an **unsigned** IPA on a
+GitHub macOS runner whenever a `sideload/**` branch is pushed (or by hand
+from the Actions tab). It uses its own bundle id (`cam.lenslink.sideload`)
+and home-screen name (`LensLink Test`), so it installs next to the App
+Store / TestFlight LensLink instead of replacing it. No certificate,
+profile or Apple ID is stored in GitHub: SideStore (or AltStore /
+Sideloadly) re-signs the IPA on the phone with your own Apple ID.
+
+Download the artifact from the run, unzip it to get the `.ipa`, and open
+it in SideStore. Locally, the same build is:
+
+```bash
+xcodebuild build -project LensLink.xcodeproj -scheme LensLink \
+  -configuration Release -destination 'generic/platform=iOS' \
+  CODE_SIGNING_ALLOWED=NO \
+  LENSLINK_BUNDLE_ID=cam.lenslink.sideload LENSLINK_DISPLAY_NAME="LensLink Test"
+```
+
+Both copies advertise the same Bonjour service and listen on port 9979,
+so keep only one of them open while streaming.
+
 ## Notes
 
 - **No Mac handy?** `ios-app/syntax-check.sh` parse-checks every Swift

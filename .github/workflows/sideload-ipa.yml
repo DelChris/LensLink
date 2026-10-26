@@ -1,0 +1,70 @@
+name: Sideload IPA
+
+# An unsigned test IPA with its own bundle id and name, so it installs
+# NEXT TO the App Store / TestFlight LensLink instead of replacing it.
+# SideStore (or AltStore / Sideloadly) re-signs it on the phone with the
+# user's Apple ID: no certificate, profile or Apple credential is stored
+# here, and none is needed.
+#
+# Runs on a push to a sideload/** branch, or by hand (Actions → Sideload
+# IPA → Run workflow; a manual run needs this file on the default branch).
+# Never creates a tag or a release: the IPA is a 7-day workflow artifact.
+
+on:
+  push:
+    branches: ["sideload/**"]
+  workflow_dispatch:
+    inputs:
+      bundle_id:
+        description: App bundle id (the extension gets <id>.broadcast)
+        required: false
+        default: cam.lenslink.sideload
+        type: string
+      display_name:
+        description: Home-screen name
+        required: false
+        default: LensLink Test
+        type: string
+
+concurrency:
+  group: sideload-ipa-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  ipa:
+    name: Unsigned sideload IPA
+    # Same image as build.yml's required iOS check, so the IPA is built
+    # the way every merged PR already compiles.
+    runs-on: macos-15
+    # A healthy build takes a few minutes; this only caps a hung job.
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ./.github/actions/unsigned-ipa
+        with:
+          bundle-id: ${{ inputs.bundle_id || 'cam.lenslink.sideload' }}
+          display-name: ${{ inputs.display_name || 'LensLink Test' }}
+
+      - name: Name the IPA after the commit
+        id: name
+        shell: bash
+        run: |
+          name="LensLink-sideload-${GITHUB_SHA::7}.ipa"
+          mv ios-app/LensLink-unsigned.ipa "ios-app/$name"
+          echo "ipa=$name" >> "$GITHUB_OUTPUT"
+          {
+            echo "### Sideload IPA"
+            echo "- Commit: \`${GITHUB_SHA::7}\` on \`${GITHUB_REF_NAME}\`"
+            echo "- File: \`$name\` (unsigned: install with SideStore)"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ steps.name.outputs.ipa }}
+          path: ios-app/${{ steps.name.outputs.ipa }}
+          if-no-files-found: error
+          retention-days: 7

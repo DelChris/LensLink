@@ -16,6 +16,17 @@ inputs:
       MARKETING_VERSION. Empty keeps the project.yml default.
     required: false
     default: ""
+  bundle-id:
+    description: >-
+      Bundle id for the app (the extension gets "<id>.broadcast"), so a
+      sideloaded test build installs next to the store app. Empty keeps
+      the project.yml default.
+    required: false
+    default: ""
+  display-name:
+    description: Home-screen name. Empty keeps the project.yml default.
+    required: false
+    default: ""
 
 runs:
   using: composite
@@ -32,6 +43,8 @@ runs:
       working-directory: ios-app
       env:
         VERSION: ${{ inputs.version }}
+        BUNDLE_ID: ${{ inputs.bundle-id }}
+        DISPLAY_NAME: ${{ inputs.display-name }}
       run: |
         set -o pipefail
         # Same version-from-tag rule as testflight.yml, so the sideload
@@ -41,6 +54,12 @@ runs:
         extra=()
         if [ -n "$version" ]; then
           extra+=("MARKETING_VERSION=$version")
+        fi
+        if [ -n "$BUNDLE_ID" ]; then
+          extra+=("LENSLINK_BUNDLE_ID=$BUNDLE_ID")
+        fi
+        if [ -n "$DISPLAY_NAME" ]; then
+          extra+=("LENSLINK_DISPLAY_NAME=$DISPLAY_NAME")
         fi
         xcodebuild build \
           -project LensLink.xcodeproj \
